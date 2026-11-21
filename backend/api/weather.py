@@ -22,7 +22,8 @@ def get_weather():
         "description": data["weather"][0]["description"],
         "icon": data["weather"][0]["icon"],
         "wind_speed": data["wind"]["speed"],
-        "rain": data["rain"]["1h"]
+        "location": data["name"],
+        "rain": data.get("rain", {}).get("1h", 0)
     }
 
 print(get_weather())
