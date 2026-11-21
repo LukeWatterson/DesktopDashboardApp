@@ -16,7 +16,7 @@ env/
 !.env.example
 
 # Google Calendar OAuth credentials
-config/credentials.json
+credentials.json
 config/token.json
 credentials.json
 token.json
