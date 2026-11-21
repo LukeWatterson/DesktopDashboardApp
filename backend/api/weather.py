@@ -25,5 +25,3 @@ def get_weather():
         "location": data["name"],
         "rain": data.get("rain", {}).get("1h", 0)
     }
-
-print(get_weather())

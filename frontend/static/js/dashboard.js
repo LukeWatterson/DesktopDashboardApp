@@ -14,7 +14,7 @@ async function updateWeather() {
         const response = await fetch("/api/weather");
 
         if (!response.ok) {
-            throw new Error("Weather unavailable");
+            throw new Error("Weather unavailable" + response.status);
         }
 
         const weather = await response.json();
@@ -49,7 +49,48 @@ async function updateWeather() {
     }
 }
 
+
+async function updateCalendar() {
+    try {
+        const response = await fetch("/api/calendar_api");
+
+        if (!response.ok) {
+            throw new Error("Calendar unavailable: " + response.status);
+        }
+
+        const list = await response.json();
+
+        console.log("Calendar events:", list);
+
+        const calendarList = document.querySelector("#calendar-items");
+
+        calendarList.innerHTML = "";
+
+        for (const item of list) {
+            const listItem = document.createElement("li");
+            listItem.className = "event";
+
+            listItem.textContent =
+                `${item.title} - ${item.start} - ${item.location}`;
+
+            calendarList.appendChild(listItem);
+        }
+
+        if (list.length === 0) {
+            calendarList.textContent = "No upcoming events";
+        }
+
+    } catch (error) {
+        console.error("Calendar error:", error);
+    }
+}
+
+
+
+
 updateWeather()
 updateClock();
+updateCalendar()
 setInterval(updateClock, 1000);
-setInterval(updateWeather, 6000000);
+setInterval(updateWeather, 3600000);
+setInterval(updateCalendar, 86400000);
