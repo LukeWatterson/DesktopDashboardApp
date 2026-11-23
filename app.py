@@ -2,7 +2,7 @@
 from flask import Flask, render_template, jsonify
 from dotenv import load_dotenv
 from backend.api.weather import get_weather
-from backend.api.calendar_api import get_calendar_events
+from backend.api.calendar_card import get_calendar_events
 
 load_dotenv()
 
