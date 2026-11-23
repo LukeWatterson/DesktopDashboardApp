@@ -1,53 +1,44 @@
+
+const dashboardPage = document.getElementById("dashboard-page");
+const calendarPage = document.getElementById("calendar-page");
+
 let startX = 0;
 let startY = 0;
+let isDragging = false;
 
-const SWIPE_THRESHOLD = 70;
+function showPage(page) {
+    dashboardPage.classList.remove("active");
+    calendarPage.classList.remove("active");
+
+    page.classList.add("active");
+}
 
 document.addEventListener("pointerdown", (event) => {
+    if (event.target.closest("button, a")) return;
 
     startX = event.clientX;
     startY = event.clientY;
-
+    isDragging = true;
 });
 
 document.addEventListener("pointerup", (event) => {
+    if (!isDragging) return;
 
-    const diffX = event.clientX - startX;
-    const diffY = event.clientY - startY;
+    isDragging = false;
 
-    // Ignore vertical movement
-    if (Math.abs(diffY) > Math.abs(diffX)) {
-        return;
+    const differenceX = event.clientX - startX;
+    const differenceY = event.clientY - startY;
+
+    if (Math.abs(differenceX) < 65) return;
+    if (Math.abs(differenceX) < Math.abs(differenceY)) return;
+
+    if (differenceX < 0) {
+        showPage(calendarPage);
+    } else {
+        showPage(dashboardPage);
     }
-
-    if (diffX > SWIPE_THRESHOLD) {
-
-        showCalendar();
-
-    } else if (diffX < -SWIPE_THRESHOLD) {
-
-        showDashboard();
-
-    }
-
 });
 
-function showCalendar() {
-
-    document.getElementById("dashboard")
-        .classList.add("hidden");
-
-    document.getElementById("calendar")
-        .classList.remove("hidden");
-
-}
-
-function showDashboard() {
-
-    document.getElementById("calendar")
-        .classList.add("hidden");
-
-    document.getElementById("dashboard")
-        .classList.remove("hidden");
-
-}
+document.addEventListener("pointercancel", () => {
+    isDragging = false;
+});
