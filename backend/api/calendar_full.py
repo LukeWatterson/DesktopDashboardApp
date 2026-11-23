@@ -1,83 +1,74 @@
-import os
-import datetime
-
-from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.discovery import build
-
-SCOPES = [
-    "https://www.googleapis.com/auth/calendar.readonly"
-]
-
-BASE_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.dirname(os.path.abspath(__file__))
-    )
-)
-
-CREDENTIALS = os.path.join(
-    BASE_DIR, "config", "credentials.json"
-)
-
-TOKEN = os.path.join(
-    BASE_DIR, "config", "token.json"
-)
+from backend.api.calendar_card import get_calendar_service
 
 
-def get_calendar_events():
+def get_calendars():
+    service = get_calendar_service()
+    calendars = []
+    page_token = None
 
-    creds = None
+    while True:
+        params = {"maxResults": 250}
+        if page_token:
+            params["pageToken"] = page_token
 
-    if os.path.exists(TOKEN):
-        creds = Credentials.from_authorized_user_file(
-            TOKEN, SCOPES
-        )
+        response = service.calendarList().list(**params).execute()
+        for calendar in response.get("items", []):
+            calendar_id = calendar.get("id")
+            if not calendar_id:
+                continue
 
-    if not creds or not creds.valid:
+            calendars.append({
+                "id": calendar_id,
+                "summary": calendar.get("summary", "Untitled calendar"),
+                "primary": bool(calendar.get("primary", False))
+            })
 
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+        page_token = response.get("nextPageToken")
+        if not page_token:
+            break
 
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                CREDENTIALS, SCOPES
+    return calendars
+
+
+def get_month_events(calendar_id, start, end):
+    service = get_calendar_service()
+    events = []
+    page_token = None
+
+    while True:
+        params = {
+            "calendarId": calendar_id,
+            "timeMin": start.isoformat(),
+            "timeMax": end.isoformat(),
+            "maxResults": 2500,
+            "singleEvents": True,
+            "orderBy": "startTime"
+        }
+        if page_token:
+            params["pageToken"] = page_token
+
+        response = service.events().list(**params).execute()
+        for event in response.get("items", []):
+            event_start = event.get("start", {})
+            event_end = event.get("end", {})
+            start_value = event_start.get(
+                "dateTime", event_start.get("date")
             )
+            end_value = event_end.get(
+                "dateTime", event_end.get("date")
+            )
+            if not start_value or not end_value:
+                continue
 
-            creds = flow.run_local_server(port=0)
+            events.append({
+                "title": event.get("summary", "Untitled"),
+                "start": start_value,
+                "end": end_value,
+                "location": event.get("location", "")
+            })
 
-        with open(TOKEN, "w") as token:
-            token.write(creds.to_json())
+        page_token = response.get("nextPageToken")
+        if not page_token:
+            break
 
-    service = build(
-        "calendar",
-        "v3",
-        credentials=creds
-    )
-
-    now = datetime.datetime.now(
-        datetime.timezone.utc
-    ).isoformat()
-
-    events = service.events().list(
-        calendarId="primary",
-        timeMin=now,
-        maxResults=10,
-        singleEvents=True,
-        orderBy="startTime"
-    ).execute()
-
-    results = []
-
-    for event in events.get("items", []):
-
-        results.append({
-            "title": event.get("summary", "Untitled"),
-            "start": event["start"].get(
-                "dateTime",
-                event["start"].get("date")
-            ),
-            "location": event.get("location", "")
-        })
-
-    return results
+    return events

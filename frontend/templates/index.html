@@ -61,38 +61,49 @@
             </footer>
         </section>
         <section id="calendar-page" class="page">
-
-            <header>
-                <h1>Calendar</h1>
-                <div id="calendar-date"></div>
+            <header class="calendar-header">
+                <div>
+                    <h1>Calendar</h1>
+                    <p id="calendar-date" aria-live="polite"></p>
+                </div>
+                <label id="calendar-selector" class="calendar-selector" for="calendar-select">
+                    Calendar
+                    <select id="calendar-select" aria-label="Choose a calendar"></select>
+                </label>
             </header>
 
-            <article class="card">
-                <h2>Upcoming events</h2>
+            <section class="calendar-layout" aria-label="Calendar and selected day events">
+                <article class="card calendar-month-card">
+                    <div class="calendar-controls">
+                        <button id="calendar-previous" type="button" aria-label="Previous month">‹</button>
+                        <h2 id="calendar-month-heading" aria-live="polite">Loading calendar…</h2>
+                        <button id="calendar-next" type="button" aria-label="Next month">›</button>
+                    </div>
+                    <div class="calendar-weekdays" aria-hidden="true">
+                        <span>Sun</span>
+                        <span>Mon</span>
+                        <span>Tue</span>
+                        <span>Wed</span>
+                        <span>Thu</span>
+                        <span>Fri</span>
+                        <span>Sat</span>
+                    </div>
+                    <div id="calendar-grid" class="calendar-grid" aria-label="Days of the month"></div>
+                    <p id="calendar-status" class="calendar-status" role="status"></p>
+                </article>
 
-                <div class="event">
-                    <span>09:00</span>
-                    <strong>Morning meeting</strong>
-                </div>
-
-                <div class="event">
-                    <span>12:30</span>
-                    <strong>Lunch</strong>
-                </div>
-
-                <div class="event">
-                    <span>15:00</span>
-                    <strong>Project work</strong>
-                </div>
-
-            </article>
+                <article class="card calendar-events-panel" aria-labelledby="selected-day-heading">
+                    <h2 id="selected-day-heading">Events</h2>
+                    <ul id="selected-day-events" class="selected-day-events"></ul>
+                </article>
+            </section>
 
             <footer>← Swipe right for dashboard</footer>
-
         </section>
     </main>
 
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/calendar.js') }}"></script>
     <script src="{{ url_for('static', filename='js/swipe.js') }}"></script>
 </body>
 </html>
