@@ -1,6 +1,6 @@
 function updateClock() {
     const now = new Date();
-
+    document.getElementById("greeting").textContent = now.getHours() < 12 ? "Good morning" : now.getHours() < 18 ? "Good afternoon" : "Good evening";
     document.getElementById("clock").textContent =
         now.toLocaleTimeString("en-GB", {
             hour: "2-digit",

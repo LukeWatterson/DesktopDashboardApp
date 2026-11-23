@@ -640,3 +640,7 @@ footer {
         min-height: 42px;
     }
 }
+
+.greeting {
+    font-size: 24px;
+}
