@@ -1,6 +1,7 @@
 import os
-import datetime
+from datetime import datetime, timedelta
 import threading
+from zoneinfo import ZoneInfo
 
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
@@ -55,32 +56,102 @@ def get_calendar_service():
             credentials=creds
         )
 
+def get_calendars(service):
+    calendars = []
+    page_token = None
+
+    while True:
+        response = service.calendarList().list(
+            pageToken=page_token
+        ).execute()
+
+        calendars.extend(response.get("items", []))
+
+        page_token = response.get("nextPageToken")
+        if not page_token:
+            break
+
+    return calendars
+
+def get_upcoming_events(service, calendars, limit=10):
+    all_events = []
+
+    # Use the user's local timezone
+    timezone = ZoneInfo("Europe/London")
+
+    today = datetime.now(timezone).date()
+
+    start_of_day = datetime.combine(
+        today, time.min, tzinfo=timezone
+    )
+
+    start_of_tomorrow = datetime.combine(
+        today + timedelta(days=1), time.min, tzinfo=timezone
+    )
+
+    for calendar in calendars:
+        response = service.events().list(
+            calendarId=calendar["id"],
+            timeMin=start_of_day.isoformat(),
+            timeMax=start_of_tomorrow.isoformat(),
+            maxResults=limit,
+            singleEvents=True,
+            orderBy="startTime"
+        ).execute()
+
+        for event in response.get("items", []):
+            if event.get("status") == "cancelled":
+                continue
+
+            event["calendarId"] = calendar["id"]
+            event["calendarName"] = calendar.get("summary")
+
+            all_events.append(event)
+
+    return all_events
+
+from datetime import datetime, date, time, timezone
+
+def get_event_start(event):
+    start = event["start"]
+
+    if "dateTime" in start:
+        return datetime.fromisoformat(
+            start["dateTime"].replace("Z", "+00:00")
+        )
+
+    # All-day events
+    return datetime.combine(
+        date.fromisoformat(start["date"]),
+        time.min,
+        tzinfo=timezone.utc
+    )
+
+
+def get_nearest_events(service, limit=10):
+    calendars = get_calendars(service)
+
+    events = get_upcoming_events(
+        service,
+        calendars,
+        limit=limit
+    )
+
+    events.sort(key=get_event_start)
+
+    return events[:limit]
 
 def get_calendar_events():
     service = get_calendar_service()
 
-    now = datetime.datetime.now(
-        datetime.timezone.utc
-    ).isoformat()
-
-    events = service.events().list(
-        calendarId="primary",
-        timeMin=now,
-        maxResults=10,
-        singleEvents=True,
-        orderBy="startTime"
-    ).execute()
+    events = get_nearest_events(service)
 
     results = []
 
-    for event in events.get("items", []):
-
+    for event in events:
         results.append({
             "title": event.get("summary", "Untitled"),
-            "start": event["start"].get(
-                "dateTime",
-                event["start"].get("date")
-            ),
+            "start": get_event_start(event),
             "location": event.get("location", "")
         })
 

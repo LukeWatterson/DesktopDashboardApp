@@ -59,30 +59,95 @@ async function updateCalendar() {
         }
 
         const list = await response.json();
-
-        console.log("Calendar events:", list);
-
         const calendarList = document.querySelector("#calendar-items");
-
-        calendarList.innerHTML = "";
+        calendarList.replaceChildren();
 
         for (const item of list) {
             const listItem = document.createElement("li");
             listItem.className = "event";
 
-            listItem.textContent =
-                `${item.title} - ${item.start} - ${item.location}`;
+            const time = document.createElement("time");
+            time.className = "event-time";
+            time.textContent = formatUpcomingEventTime(item.start);
+            if (typeof item.start === "string") {
+                time.dateTime = item.start;
+            }
+            listItem.appendChild(time);
 
+            const details = document.createElement("div");
+            details.className = "event-details";
+
+            const title = document.createElement("strong");
+            title.className = "event-title";
+            title.textContent = typeof item.title === "string" && item.title.trim()
+                ? item.title
+                : "Untitled event";
+            details.appendChild(title);
+
+            if (typeof item.location === "string" && item.location.trim()) {
+                const location = document.createElement("span");
+                location.className = "event-location";
+                location.textContent = item.location;
+                details.appendChild(location);
+            }
+
+            listItem.appendChild(details);
             calendarList.appendChild(listItem);
         }
 
         if (list.length === 0) {
-            calendarList.textContent = "No upcoming events";
+            const emptyMessage = document.createElement("li");
+            emptyMessage.className = "calendar-empty";
+            emptyMessage.textContent = "No upcoming events";
+            calendarList.appendChild(emptyMessage);
         }
 
     } catch (error) {
         console.error("Calendar error:", error);
+        const calendarList = document.querySelector("#calendar-items");
+        const errorMessage = document.createElement("li");
+        errorMessage.className = "calendar-empty";
+        errorMessage.textContent = "Upcoming events are unavailable.";
+        calendarList.replaceChildren(errorMessage);
     }
+}
+
+
+function formatUpcomingEventTime(value) {
+    if (typeof value !== "string" || !value) {
+        return "Date/time unavailable";
+    }
+
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [year, month, day] = value.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+        if (
+            date.getFullYear() !== year
+            || date.getMonth() !== month - 1
+            || date.getDate() !== day
+        ) {
+            return "Date/time unavailable";
+        }
+
+        return `All day · ${date.toLocaleDateString(undefined, {
+            weekday: "short",
+            month: "short",
+            day: "numeric"
+        })}`;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+        return "Date/time unavailable";
+    }
+
+    return date.toLocaleString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+    });
 }
 
 

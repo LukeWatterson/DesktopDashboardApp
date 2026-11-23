@@ -27,24 +27,36 @@
             <section class="grid">
 
                 <article class="card weather">
-                    <h2>Weather</h2>
-                    <img id="weather-icon" src="" alt="Weather icon">
-                    <div id="temperature" class="temperature">--°C</div>
-                    <div id="feels-like" class="feels-like">
-                        Feels like --°C
+                    <div class="weather-heading">
+                        <h2>Weather</h2>
+                        <span class="weather-kicker">Current conditions</span>
                     </div>
-                    <div id="description" class="description">
-                        Loading...
+                    <div class="weather-current">
+                        <img id="weather-icon" src="" alt="Weather icon">
+                        <div class="weather-summary">
+                            <div id="temperature" class="temperature">--°C</div>
+                            <div id="description" class="description">
+                                Loading...
+                            </div>
+                            <div id="feels-like" class="feels-like">
+                                Feels like --°C
+                            </div>
+                        </div>
                     </div>
-                    <div id="location" class="location">
-                        Loading...
-                    </div>
-                    <div id="rain" class="rain">--mm</div>
-                    <div id="wind-speed" class="wind-speed">
-                        -- m/s
-                    </div>
-                    <div id="humidity" class="humidity">
-                        --%
+                    <div id="location" class="location">Loading...</div>
+                    <div class="weather-metrics" aria-label="Weather details">
+                        <div class="weather-metric">
+                            <span class="weather-metric-label">Rain</span>
+                            <div id="rain" class="rain">--mm</div>
+                        </div>
+                        <div class="weather-metric">
+                            <span class="weather-metric-label">Wind</span>
+                            <div id="wind-speed" class="wind-speed">-- m/s</div>
+                        </div>
+                        <div class="weather-metric">
+                            <span class="weather-metric-label">Humidity</span>
+                            <div id="humidity" class="humidity">--%</div>
+                        </div>
                     </div>
                 </article>
 
